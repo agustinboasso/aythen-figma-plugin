@@ -1,5 +1,11 @@
 import { getBackgroundColor, getTextColor } from './PropertiesHandlers';
 
+const specialProperties = {
+  fills: (node) => ({
+    backgroundColor: getBackgroundColor(node.fills),
+    color: getTextColor(node),
+  }),
+};
 
 export const fnNativeAttributes = (node) => {
     const allPropertyNames = [
@@ -117,13 +123,16 @@ export const fnNativeAttributes = (node) => {
     const data = {};
   
     for (const propertyName of allPropertyNames) {
-      if (propertyName in node) {
-        if (propertyName === "fills") {
-          data["backgroundColor"] = getBackgroundColor(node[propertyName]);
-          data["color"] = getTextColor(node);
-        } else {
-          data[propertyName] = node[propertyName];
+      try {
+        if (propertyName in node) {
+          if (specialProperties[propertyName]) {
+            Object.assign(data, specialProperties[propertyName](node));
+          } else {
+            data[propertyName] = node[propertyName];
+          }
         }
+      } catch (error) {
+        console.error(`Error processing property ${propertyName}: ${error}`);
       }
     }
   
