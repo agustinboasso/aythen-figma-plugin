@@ -135,7 +135,7 @@ export const fnNativeAttributes = (node) => {
         console.error(`Error processing property ${propertyName}: ${error}`);
       }
     }
-  
+    console.log("Atributos nativos calculados:", data);
     return data;
   };
   

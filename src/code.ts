@@ -268,7 +268,7 @@ var createComponent = (node) => {
   const cssProperties = fnNativeAttributes(node);
   
   var tree = {
-     //...templateComponent,
+     ...templateComponent,
     tag: componentType,
     componentName: componentName,
     nativeAttributes: cssProperties,
@@ -279,15 +279,23 @@ var createComponent = (node) => {
 
   if (hasChildren && !(componentType == 'svg')) {
     console.log('n4: ', node.children.length);
-    const childComponents = node.children.map(childNode => {
-      return createComponent(childNode);
-    });
-    tree.children = childComponents;
-    console.log(tree);
-  }
+//     const childComponents = node.children.map(childNode => {
+//       return createComponent(childNode);
+//     });
+//     tree.children = childComponents;
+//     console.log(tree);
+//   }
 
   
-  return tree;
+//   return tree;
+// }
+node.children.forEach(childNode => {
+  const childComponent = createComponent(childNode); // Llamada recursiva
+  tree.children.push(childComponent); // Agregamos el hijo procesado al árbol
+});
+}
+
+return tree;
 }
 
 
