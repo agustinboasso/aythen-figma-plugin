@@ -1,6 +1,7 @@
 // import { settings } from "./dist/settings";
+import { log } from 'console';
 import { fnNativeAttributes } from './components/Properties';
-import {processImages} from './components/PropertiesHandlers'
+import {processImages, getImageFills} from './components/ImagesProperties'
 
 // var fnNativeAttributes = (node) => {
 //   return true;
@@ -201,7 +202,6 @@ var getComponentType = (type) => {
 var templateComponent = {
   "tag": "span",
   "attributes": {},
-  //"images":[],
   "nativeAttributes": {
     "value": "text",
     "innerHTML": "text"
@@ -260,20 +260,22 @@ var templateComponent = {
 };
 
 
-var createComponent = async (node) => {
+
+var createComponent =  async (node) => {
   const componentType = getComponentType(node.type);
   const hasChildren = node.type === 'GROUP' || node.type === 'FRAME';
 
   const componentName = node.name;
 
   const cssProperties = fnNativeAttributes(node);
+  const imgProperties = await processImages(node);
   
   var tree = {
-     ...templateComponent,
+     //...templateComponent,
     tag: componentType,
     componentName: componentName,
-    images: [],
     nativeAttributes: cssProperties,
+    imageNodes: imgProperties, 
     hasChildren: hasChildren,
     children: [],
     
@@ -281,10 +283,7 @@ var createComponent = async (node) => {
   
   
   if ((node.type === 'RECTANGLE' || node.type === 'TEXT') && node.fills) {
-    const imageNodes = await  processImages(node);
-    //console.log(imageNodes);
-    
-    tree.images = imageNodes; 
+    tree.imageNodes = imgProperties;
   }
 
   if (hasChildren && !(componentType == 'svg')) {
@@ -299,14 +298,16 @@ var createComponent = async (node) => {
   
 //   return tree;
 // }
- node.children.forEach(childNode => {
-   const childComponent = createComponent(childNode); // Llamada recursiva
-   tree.children.push(childComponent); // Agregamos el hijo procesado al árbol
- });
- }
- console.log(tree);
- return tree;
- }
+const childComponents = await Promise.all(node.children.map(async (childNode) => {
+  const childComponent = await createComponent(childNode);
+  return childComponent;
+}));
+tree.children = childComponents;
+}
+//console.log(tree);
+
+return tree;
+};
 // const childComponents = await Promise.all(node.children.map(async (childNode: any) => {
 //   const childComponent = await createComponent(childNode); // Llamada recursiva
 //   return childComponent;
@@ -329,6 +330,8 @@ figma.ui.onmessage = async (msg) => {
       const startTime = Date.now(); // Marca el inicio de la generación del JSON
 
       const selectedComponent = figma.currentPage.selection[0];
+      //console.log(selectedComponent)
+
       const treeComponent = await createComponent(selectedComponent);
 
       const endTime = Date.now(); // Marca el final de la generación del JSON
