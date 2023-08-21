@@ -1,6 +1,6 @@
 // import { settings } from "./dist/settings";
 import { fnNativeAttributes } from './components/Properties';
-
+import {processImages} from './components/PropertiesHandlers'
 
 // var fnNativeAttributes = (node) => {
 //   return true;
@@ -201,6 +201,7 @@ var getComponentType = (type) => {
 var templateComponent = {
   "tag": "span",
   "attributes": {},
+  //"images":[],
   "nativeAttributes": {
     "value": "text",
     "innerHTML": "text"
@@ -259,7 +260,7 @@ var templateComponent = {
 };
 
 
-var createComponent = (node) => {
+var createComponent = async (node) => {
   const componentType = getComponentType(node.type);
   const hasChildren = node.type === 'GROUP' || node.type === 'FRAME';
 
@@ -271,14 +272,23 @@ var createComponent = (node) => {
      ...templateComponent,
     tag: componentType,
     componentName: componentName,
+    images: [],
     nativeAttributes: cssProperties,
     hasChildren: hasChildren,
-    children: []
+    children: [],
+    
   };
-
+  
+  
+  if ((node.type === 'RECTANGLE' || node.type === 'TEXT') && node.fills) {
+    const imageNodes = await processImages(node);
+    //console.log(imageNodes);
+    
+    tree.images = imageNodes; 
+  }
 
   if (hasChildren && !(componentType == 'svg')) {
-    console.log('n4: ', node.children.length);
+    //console.log('n4: ', node.children.length);
 //     const childComponents = node.children.map(childNode => {
 //       return createComponent(childNode);
 //     });
@@ -294,7 +304,7 @@ node.children.forEach(childNode => {
   tree.children.push(childComponent); // Agregamos el hijo procesado al árbol
 });
 }
-
+console.log(tree);
 return tree;
 }
 
@@ -303,7 +313,7 @@ return tree;
 
 figma.showUI(__html__, { themeColors: true, height: 300 });
 
-figma.ui.onmessage = (msg) => {
+figma.ui.onmessage = async (msg) => {
 
 
   if (msg.type === "figma-json") {
@@ -311,7 +321,7 @@ figma.ui.onmessage = (msg) => {
       const startTime = Date.now(); // Marca el inicio de la generación del JSON
 
       const selectedComponent = figma.currentPage.selection[0];
-      const treeComponent = createComponent(selectedComponent);
+      const treeComponent = await createComponent(selectedComponent);
 
       const endTime = Date.now(); // Marca el final de la generación del JSON
       const jsonGenerationTime = endTime - startTime; // Calcula el tiempo de generación
@@ -345,6 +355,8 @@ figma.ui.onmessage = (msg) => {
     } catch (error) {
       console.error('Error en la solicitud:', error);
     }
+
+    
   }
   // console.log(jsonData);
   // Make sure to close the plugin when you're done. Otherwise the plugin will
