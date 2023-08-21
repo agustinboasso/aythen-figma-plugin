@@ -281,7 +281,7 @@ var createComponent = async (node) => {
   
   
   if ((node.type === 'RECTANGLE' || node.type === 'TEXT') && node.fills) {
-    const imageNodes = await processImages(node);
+    const imageNodes = await  processImages(node);
     //console.log(imageNodes);
     
     tree.images = imageNodes; 
@@ -299,15 +299,23 @@ var createComponent = async (node) => {
   
 //   return tree;
 // }
-node.children.forEach(childNode => {
-  const childComponent = createComponent(childNode); // Llamada recursiva
-  tree.children.push(childComponent); // Agregamos el hijo procesado al árbol
-});
-}
-console.log(tree);
-return tree;
-}
-
+ node.children.forEach(childNode => {
+   const childComponent = createComponent(childNode); // Llamada recursiva
+   tree.children.push(childComponent); // Agregamos el hijo procesado al árbol
+ });
+ }
+ console.log(tree);
+ return tree;
+ }
+// const childComponents = await Promise.all(node.children.map(async (childNode: any) => {
+//   const childComponent = await createComponent(childNode); // Llamada recursiva
+//   return childComponent;
+// }));
+// tree.children = childComponents;
+// }
+// console.log(tree);
+// return tree;
+// }
 
 
 
