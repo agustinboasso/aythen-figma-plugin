@@ -84,7 +84,7 @@
                   src: image.src,
                   absoluteTransform: image.absoluteTransform,
                   fills: image.fills,
-                  // Agrega aquí todas las demás propiedades relevantes del nodo de imagen
+                 
                 };
                 delete image.intArr;
     

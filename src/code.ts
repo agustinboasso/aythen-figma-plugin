@@ -89,6 +89,7 @@ var getComponentType = (type) => {
 var templateComponent = {
   "tag": "span",
   "attributes": {},
+  "image":[],
   "nativeAttributes": {
     "value": "text",
     "innerHTML": "text"
@@ -158,11 +159,12 @@ var createComponent =  async (node) => {
   const imgProperties = await processImages(node);
   
   var tree = {
-     //...templateComponent,
+     ...templateComponent,
     tag: componentType,
     componentName: componentName,
     nativeAttributes: cssProperties,
-    imageNodes: imgProperties, 
+    image:imgProperties,
+    //imageNodes:imgProperties , 
     hasChildren: hasChildren,
     children: [],
     
@@ -170,7 +172,7 @@ var createComponent =  async (node) => {
   
   
   if ((node.type === 'RECTANGLE' || node.type === 'TEXT') && node.fills) {
-    tree.imageNodes = imgProperties;
+    tree.image = imgProperties;
   }
 
   if (hasChildren && !(componentType == 'svg')) {
