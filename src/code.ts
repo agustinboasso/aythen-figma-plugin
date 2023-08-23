@@ -85,11 +85,10 @@ var templateComponent = {
 
 
 var createComponent =  async (node) => {
+  
   const componentType = getComponentType(node.type);
   const hasChildren = node.type === 'GROUP' || node.type === 'FRAME';
-
   const componentName = node.name;
-
   const cssProperties = fnNativeAttributes(node);
 
   //tree.Property.style.desktop.attribute = { ...cssProperties }

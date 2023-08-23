@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
 import "./ui.css";
-import { log } from "console";
+
 
 declare function require(path: string): any;
 
