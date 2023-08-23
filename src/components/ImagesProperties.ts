@@ -97,7 +97,7 @@
           });
     
           await Promise.all(promises); // Esperar a que se resuelvan todas las promesas
-          console.log("succes:", imageNodes)
+          //console.log("succes:", imageNodes)
           return imageNodes; // Devolver los nodos de imagen una vez que se hayan procesado
           
         } else {

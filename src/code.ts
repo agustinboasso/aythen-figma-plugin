@@ -2,67 +2,6 @@
 import { fnNativeAttributes } from './components/CssProperties';
 import {processImages, getImageFills} from './components/ImagesProperties'
 
-// var fnNativeAttributes = (node) => {
-//   return true;
-  // var data = {
-  //     test: true
-  //   //width: node.width,
-  //   //height: node.height,
-  // //   backgroundColor: node.fills[0].color
-  // //   backgroundColor: getBackgroundColor(node.fills),
-  // //   color: getTextColor(node.fills),
-  // //   fontFamily: node.fontFamily,
-  // //   fontSize: node.fontSize,
-  // //   fontWeight: node.fontWeight,
-  // //   textAlign: node.textAlign,
-  // //   margin: node.margin,
-  // //   padding: node.padding,
-  // //   border: node.border,
-  // //   display: node.layoutAlign,
-  // //   top: node.layoutPositioning === 'TOP_LEFT' ? node.y : null,
-  // //   right: node.layoutPositioning === 'TOP_RIGHT' ? node.x : null,
-  // //   bottom: node.layoutPositioning === 'BOTTOM_LEFT' ? node.y : null,
-  // //   left: node.layoutPositioning === 'BOTTOM_RIGHT' ? node.x : null,
-  // //   float: node.layoutAlign,
-  // //   clear: node.layoutGrow,
-  // //   opacity: node.opacity,
-  // //   transition: node.playbackSettings,
-  // //   transform: node.relativeTransform,
-  // //   boxShadow: node.effects,
-  // //   textDecoration: node.textDecoration,
-  // //   borderRadius: node.cornerRadius,
-  // //   boxSizing: node.constraints,
-  // //   overflow: node.layoutSizingHorizontal,
-  // //   zIndex: node.zIndex
-  // }
-
-  // return data
-
-
-
-
-
-
-
-
-// The Figma nodes are hard to inspect at a glance because almost all properties are non enumerable
-// getters. This removes that wrapping for easier inspecting
-// const cloneObject = (obj: any, valuesSet = new Set()) => {
-//   if (!obj || typeof obj !== "object") {
-//     return obj;
-//   }
-
-//   const newObj: any = Array.isArray(obj) ? [] : {};
-
-//   for (const property of allPropertyNames) {
-//     const value = obj[property];
-//     if (value !== undefined && typeof value !== "symbol") {
-//       newObj[property] = obj[property];
-//     }
-//   }
-
-//   return newObj;
-// };
 
 
 var allowAttr = [
@@ -218,36 +157,17 @@ var createComponent =  async (node) => {
   }
 
   if (hasChildren && !(componentType == 'svg')) {
-    //console.log('n4: ', node.children.length);
-//     const childComponents = node.children.map(childNode => {
-//       return createComponent(childNode);
-//     });
-//     tree.children = childComponents;
-//     console.log(tree);
-//   }
 
-  
-//   return tree;
-// }
 const childComponents = await Promise.all(node.children.map(async (childNode) => {
   const childComponent = await createComponent(childNode);
   return childComponent;
 }));
 tree.children = childComponents;
 }
-console.log(tree);
+//console.log(tree);
 
 return tree;
 };
-// const childComponents = await Promise.all(node.children.map(async (childNode: any) => {
-//   const childComponent = await createComponent(childNode); // Llamada recursiva
-//   return childComponent;
-// }));
-// tree.children = childComponents;
-// }
-// console.log(tree);
-// return tree;
-// }
 
 
 
@@ -268,9 +188,15 @@ figma.ui.onmessage = async (msg) => {
       const endTime = Date.now(); // Marca el final de la generación del JSON
       const jsonGenerationTime = endTime - startTime; // Calcula el tiempo de generación
 
-      const response = JSON.stringify(treeComponent);
+      const response = treeComponent;
+      
+      //console.log("Esta es la respuesta del arbol:",response)
 
-      figma.ui.postMessage({ type: "clipboard", data: response });
+      figma.ui.postMessage({ type: "json-data", data: response });
+      //console.log(response);
+      
+
+      //figma.ui.postMessage({ type: "clipboard", data: response });
 
       // Envía el tiempo de generación del JSON al componente React
       figma.ui.postMessage({ type: "json-generation-time", time: jsonGenerationTime });
