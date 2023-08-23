@@ -181,7 +181,7 @@ figma.ui.onmessage = async (msg) => {
       const startTime = Date.now(); // Marca el inicio de la generación del JSON
 
       const selectedComponent = figma.currentPage.selection[0];
-      console.log(selectedComponent)
+      //console.log(selectedComponent)
 
       const treeComponent = await createComponent(selectedComponent);
 
