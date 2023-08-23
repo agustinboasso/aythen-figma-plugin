@@ -119,14 +119,10 @@ var templateComponent = {
         "attribute": {}
       },
       "desktop": {
+        //"cssProperties" :[], 
         "width": "1920",
         "active": true,
-        "attribute": {
-          "display": {
-            "value": "inline",
-            "active": true
-          }
-        }
+        "attribute":[], 
       },
       "mobileLandscape": {
         "width": "767",
@@ -156,19 +152,65 @@ var createComponent =  async (node) => {
   const componentName = node.name;
 
   const cssProperties = fnNativeAttributes(node);
+
+  //tree.Property.style.desktop.attribute = { ...cssProperties }
+
   const imgProperties = await processImages(node);
   
   var tree = {
-     ...templateComponent,
+    ...templateComponent,
     tag: componentType,
     componentName: componentName,
-    nativeAttributes: cssProperties,
-    image:imgProperties,
-    //imageNodes:imgProperties , 
+    //cssProperties: cssProperties,
+    image: imgProperties,
+    Property: {
+      style: {
+        wide: {
+          width: "1600",
+          active: true,
+          attribute: {}
+        },
+        laptop: {
+          width: "1200",
+          active: true,
+          attribute: {}
+        },
+        mobile: {
+          width: "479",
+          active: true,
+          attribute: {}
+        },
+        tablet: {
+          width: "991",
+          active: true,
+          attribute: {}
+        },
+        desktop: {
+          //cssProperties: cssProperties, 
+          width: "1920",
+          active: true,
+          attribute:cssProperties,
+        },
+        mobileLandscape: {
+          width: "767",
+          active: true,
+          attribute: {}
+        }
+      },
+      grid: {
+        h: "",
+        w: "",
+        x: "",
+        y: ""
+      },
+      event: "",
+      state: {},
+      other: {}
+    },
     hasChildren: hasChildren,
-    children: [],
-    
+    children: []
   };
+  
   
   
   if ((node.type === 'RECTANGLE' || node.type === 'TEXT') && node.fills) {
@@ -193,7 +235,7 @@ const childComponents = await Promise.all(node.children.map(async (childNode) =>
 }));
 tree.children = childComponents;
 }
-//console.log(tree);
+console.log(tree);
 
 return tree;
 };
