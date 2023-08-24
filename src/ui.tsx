@@ -6,52 +6,55 @@ import "./ui.css";
 declare function require(path: string): any;
 
 
-function descargarJSONAutomatically(jsonData: any, filename: string) {
-  const downloadLink = document.createElement('a');
-  downloadLink.href = URL.createObjectURL(new Blob([JSON.stringify(jsonData)], { type: 'application/json' }));
-  downloadLink.download = filename;
-  
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-}
 function App() {
   const [loading, setLoading] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [jsonData, setJsonData] = React.useState<any>(null);
+  const [downloadRequested, setDownloadRequested] = React.useState(false);
+  
 
   const figmaJSON = async () => {
     setLoading(true);
     setProgress(0);
 
     console.log("Comenzando la generación de JSON...");
+    
     const startTime = Date.now();
-
     parent.postMessage({ pluginMessage: { type: "figma-json" } }, "*");
-    //clipBoard('ideuduie');
+ 
 
     try {
-      const jsonGenerationTime = 5000; 
+      const jsonGenerationTime = 10000;
       const endTime = startTime + jsonGenerationTime;
-
-      while (Date.now() < endTime) {
+     while (Date.now() < endTime) {
         const currentTime = Date.now();
         const elapsedTime = currentTime - startTime;
         const calculatedProgress = (elapsedTime / jsonGenerationTime) * 100;
-
-        //console.log("Progreso calculado:", calculatedProgress);
-
         setProgress(Math.min(calculatedProgress, 100));
-
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
 
       console.log("Generación de JSON completada.");
       setLoading(false);
-   
+      setDownloadRequested(true);
     } catch (error) {
       console.error(error);
       setLoading(false);
+    }
+  };
+
+  
+  const handleDownload = () => {
+    if (jsonData) {
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const blobUrl = URL.createObjectURL(blob); 
+      const downloadLink = document.createElement('a');
+      downloadLink.href = blobUrl;
+      downloadLink.download = 'generated-json.json';
+      
+      downloadLink.click();
+  
+      URL.revokeObjectURL(blobUrl);
     }
   };
 
@@ -59,18 +62,22 @@ function App() {
     parent.postMessage({ pluginMessage: { type: "cancel" } }, "*");
   };
 
-  window.addEventListener("message", (event) => {
-    if (event.data && event.data.pluginMessage.type === "json-data") {
-      const receivedJsonData = event.data.pluginMessage.data;
-
-      console.log("Esta es la data del JSON:", receivedJsonData);
-      setJsonData(receivedJsonData);
-      descargarJSONAutomatically(receivedJsonData, 'data.json');
-   
-     
-    }
-
-  });
+  React.useEffect(() => {
+    const messageListener = (event: MessageEvent) => {
+      if (event.data && event.data.pluginMessage.type === "json-data" && !downloadRequested) {
+        const receivedJsonData = event.data.pluginMessage.data;
+        console.log("Esta es la data del JSON:", receivedJsonData);
+        setJsonData(receivedJsonData);
+      }
+    };
+  
+    window.addEventListener("message", messageListener);
+  
+    return () => {
+      window.removeEventListener("message", messageListener);
+    };
+  }, [downloadRequested]);
+  
 
   return (
     <main>
@@ -82,6 +89,7 @@ function App() {
         <button className="brand" onClick={figmaJSON}>
           Component
         </button>
+        <button onClick={handleDownload}>Volver a descargar</button>
         <button onClick={onCancel}>Cancelar</button>
         <div className="loading-bar-container">
           {loading && (
@@ -96,8 +104,3 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById("react-page")).render(<App />);
-
-
-
-
-

@@ -1,29 +1,6 @@
 // import { settings } from "./dist/settings";
 import { fnNativeAttributes } from './components/CssProperties';
-import {processImages, getImageFills} from './components/ImagesProperties'
-
-
-
-var allowAttr = [
-  ['width', ['0px', 'auto']],
-  ['height', ['0px', 'auto']],
-  ['backgroundColor', ['auto']]
-]
-
-var getComponentType = (type) => {
-  if (type === 'RECTANGLE') {
-    return 'div';
-  } else if (type === 'TEXT') {
-    return 'span';
-  } else if (type === 'ELLIPSE' || type === 'STAR' || type === 'VECTOR' || type === 'LINE') {
-    return 'svg';
-  } else if (type === 'IMAGE') {
-    return 'img';
-  } else {
-    return 'div';
-  }
-}
-
+import {processImages} from './components/ImagesProperties'
 
 var templateComponent = {
   "tag": "span",
@@ -82,6 +59,19 @@ var templateComponent = {
   "componentName": "" ,
 };
 
+var getComponentType = (type) => {
+  if (type === 'RECTANGLE') {
+    return 'div';
+  } else if (type === 'TEXT') {
+    return 'span';
+  } else if (type === 'ELLIPSE' || type === 'STAR' || type === 'VECTOR' || type === 'LINE') {
+    return 'svg';
+  } else if (type === 'IMAGE') {
+    return 'img';
+  } else {
+    return 'div';
+  }
+}
 
 
 var createComponent =  async (node) => {
@@ -91,7 +81,7 @@ var createComponent =  async (node) => {
   const componentName = node.name;
   const cssProperties = fnNativeAttributes(node);
 
-  //tree.Property.style.desktop.attribute = { ...cssProperties }
+
 
   const imgProperties = await processImages(node);
   
@@ -99,7 +89,6 @@ var createComponent =  async (node) => {
     ...templateComponent,
     tag: componentType,
     componentName: componentName,
-    //cssProperties: cssProperties,
     image: imgProperties,
     Property: {
       style: {
@@ -154,81 +143,43 @@ var createComponent =  async (node) => {
   if ((node.type === 'RECTANGLE' || node.type === 'TEXT') && node.fills) {
     tree.image = imgProperties;
   }
-
   if (hasChildren && !(componentType == 'svg')) {
+    const childComponents = await Promise.all(
+      node.children.map(async (childNode) => {
+        const childComponent = await createComponent(childNode);
+        return childComponent;
+      })
+    );
 
-const childComponents = await Promise.all(node.children.map(async (childNode) => {
-  const childComponent = await createComponent(childNode);
-  return childComponent;
-}));
-tree.children = childComponents;
-}
-//console.log(tree);
+    const chunkSize = 1000000; 
+    const childChunks = [];
 
-return tree;
+    for (let i = 0; i < childComponents.length; i += chunkSize) {
+      const chunk = childComponents.slice(i, i + chunkSize);
+      childChunks.push(chunk);
+    }   
+    for (const chunk of childChunks) {
+      tree.children.push(...chunk);
+      await new Promise((resolve) => setTimeout(resolve, 0)); 
+    }
+  }
+
+  return tree;
 };
-
-
 
 figma.showUI(__html__, { themeColors: true, height: 300 });
 
 figma.ui.onmessage = async (msg) => {
-
-
   if (msg.type === "figma-json") {
     try {
-      const startTime = Date.now(); // Marca el inicio de la generación del JSON
-
       const selectedComponent = figma.currentPage.selection[0];
-      //console.log(selectedComponent)
-
-      const treeComponent = await createComponent(selectedComponent);
-
-      const endTime = Date.now(); // Marca el final de la generación del JSON
-      const jsonGenerationTime = endTime - startTime; // Calcula el tiempo de generación
-
-      const response = treeComponent;
-      
-      //console.log("Esta es la respuesta del arbol:",response)
-
-      figma.ui.postMessage({ type: "json-data", data: response });
-      //console.log(response);
-      
-
-      //figma.ui.postMessage({ type: "clipboard", data: response });
-
-      // Envía el tiempo de generación del JSON al componente React
-      figma.ui.postMessage({ type: "json-generation-time", time: jsonGenerationTime });
+      const jsonTree = await createComponent(selectedComponent);
+      const jsonText = JSON.stringify(jsonTree, null, 2);
+      figma.ui.postMessage({ type: "json-data", data: jsonText });
     } catch (error) {
-      console.error('No se ha seleccionado ningun componente:', error);
+      console.error('Error al generar el JSON:', error);
     }
   }
-    
-    try {
-      // const response = await fetch('http://localhost:4000/api/v1/component', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify(jsonData) // Envía el JSON proporcionado
-      // });
+}
 
-      // if (response.ok) {
-      //   const responseData = await response.json();
-      //   console.log('Respuesta del backend:', responseData);
-      // } else {
-      //   console.error('Error en la solicitud al backend:', response.status);
-      // }
-    } catch (error) {
-      console.error('Error en la solicitud:', error);
-    }
-
-    
-  }
-  // console.log(jsonData);
-  // Make sure to close the plugin when you're done. Otherwise the plugin will
-  // keep running, which shows the cancel button at the bottom of the screen.
-
-
-  //figma.closePlugin();
-
+ 
