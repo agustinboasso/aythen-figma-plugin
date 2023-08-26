@@ -11,11 +11,12 @@ function App() {
   const [progress, setProgress] = React.useState(0);
   const [jsonData, setJsonData] = React.useState<any>(null);
   const [downloadRequested, setDownloadRequested] = React.useState(false);
-  
+  const [loadingText, setLoadingText] = React.useState("Extrayendo propiedades Css");
 
   const figmaJSON = async () => {
     setLoading(true);
     setProgress(0);
+    setLoadingText("Extrayendo propiedades Css");
 
     console.log("Comenzando la generación de JSON...");
     
@@ -26,22 +27,27 @@ function App() {
     try {
       const jsonGenerationTime = 10000;
       const endTime = startTime + jsonGenerationTime;
-     while (Date.now() < endTime) {
+    
+      while (Date.now() < endTime) {
         const currentTime = Date.now();
         const elapsedTime = currentTime - startTime;
         const calculatedProgress = (elapsedTime / jsonGenerationTime) * 100;
         setProgress(Math.min(calculatedProgress, 100));
+        if (calculatedProgress >= 50 && calculatedProgress < 100) {
+          setLoadingText("Generando JSON con las propiedades");
+        }
+    
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
-
+    
       console.log("Generación de JSON completada.");
+      setLoadingText("JSON Generado con éxito");
       setLoading(false);
       setDownloadRequested(true);
     } catch (error) {
       console.error(error);
       setLoading(false);
-    }
-  };
+    }}
 
   
   const handleDownload = () => {
@@ -51,6 +57,13 @@ function App() {
       const downloadLink = document.createElement('a');
       downloadLink.href = blobUrl;
       downloadLink.download = 'generated-json.json';
+      if (progress < 50) {
+        setLoadingText("Extrayendo propiedades Css");
+      } else if (progress >= 50 && progress < 100) {
+        setLoadingText("Generando JSON con las propiedades");
+      } else {
+        setLoadingText("JSON Generado con éxito");
+      }
       
       downloadLink.click();
   
@@ -89,13 +102,23 @@ function App() {
         <button className="brand" onClick={figmaJSON}>
           Component
         </button>
-        <button onClick={handleDownload}>Volver a descargar</button>
+        <button onClick={handleDownload}>Descargar</button>
         <button onClick={onCancel}>Cancelar</button>
         <div className="loading-bar-container">
           {loading && (
             <div className="loading-bar">
               <div className="progress-bar" style={{ width: `${progress}%` }}></div>
             </div>
+          )}
+          <br />
+          {loading && (
+            <p className="loading-text">
+              {progress < 50
+              ? "Extrayendo propiedades CSS"
+              : progress >= 50 && progress < 100
+              ? "Generando JSON con las propiedades"
+              : "JSON Generado con éxito"}
+            </p>
           )}
         </div>
       </footer>
