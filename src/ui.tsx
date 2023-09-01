@@ -111,7 +111,10 @@ function App() {
             </div>
           )}
           <br />
-          {loading && (
+          
+        </div>
+        <div>
+        {loading && (
             <p className="loading-text">
               {progress < 50
               ? "Extrayendo propiedades CSS"

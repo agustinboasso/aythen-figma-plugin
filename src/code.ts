@@ -4,6 +4,7 @@ import {processImages} from './components/ImagesProperties'
 
 var templateComponent = {
   "tag": "span",
+  "name": "span",
   "attributes": {},
   "image":[],
   "nativeAttributes": {
@@ -81,13 +82,14 @@ var createComponent =  async (node) => {
   const componentName = node.name;
   const cssProperties = fnNativeAttributes(node);
 
-
+  
 
   const imgProperties = await processImages(node);
   
   var tree = {
     ...templateComponent,
     tag: componentType,
+    name: componentType,
     componentName: componentName,
     image: imgProperties,
     Property: {
@@ -125,10 +127,10 @@ var createComponent =  async (node) => {
         }
       },
       grid: {
-        h: "",
-        w: "",
-        x: "",
-        y: ""
+        h:node.height + 'px',
+        w: node.width + 'px',
+        x: node.x + 'px',
+        y: node.y + 'px',
       },
       event: "",
       state: {},

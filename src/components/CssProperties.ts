@@ -121,7 +121,7 @@ export const fnNativeAttributes = (node) => {
     ];
   
     const data = {};
-  
+    
     for (const propertyName of allPropertyNames) {
       try {
         if (propertyName in node) {
